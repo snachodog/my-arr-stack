@@ -91,9 +91,9 @@ This is composed of multiple tools working together to have an automated way to 
 
 - [Portainer](https://github.com/portainer/portainer): This is a lightweight service that allows us to monitor all of our containers, we can see the status, logs and manage them directly there.
 
-- [Tautulli](https://tautulli.com/) A monitoring app for Plex
+- [Tautulli](https://tautulli.com/): A monitoring app for Plex
 
-- [Lidarr](https://lidarr.audio/) Sonarr, for music
+- [Lidarr](https://lidarr.audio/): Sonarr, for music
 
 ## Hardware configuration
 
