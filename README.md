@@ -1,3 +1,5 @@
+Fork of [Quick Arr Stack](https://github.com/Rick45/quick-arr-Stackmain) to reflect my updates.
+
 ## Quick Arr Stack
 
 TV shows and movies download, sorted, with the desired quality and subtitles, behind a VPN (optional), ready to watch, in a beautiful media player.
@@ -17,7 +19,7 @@ _Disclaimer: I'm not encouraging/supporting piracy, this is for information only
   - [Software stack](#software-stack)
   - [Installation guide](#installation-guide)
     - [Install docker and docker-compose](#install-docker-and-docker-compose)
-    - [Helpfull Docker Commands](#helpfull-docker-commands)
+    - [Helpful Docker Commands](#helpfull-docker-commands)
     - [Clone the repository](#clone-the-repository)
     - [Setup environment variables](#setup-environment-variables)
     - [Folder Setup](#folder-structure)
@@ -88,6 +90,10 @@ This is composed of multiple tools working together to have an automated way to 
 - [Wireguard](https://github.com/linuxserver/docker-wireguard): is an extremely simple yet fast and modern VPN that utilizes state-of-the-art cryptography. This will allow us to connect to our home network  from anywhere and use the Plex app outside of our house without using Plex servers for routing.
 
 - [Portainer](https://github.com/portainer/portainer): This is a lightweight service that allows us to monitor all of our containers, we can see the status, logs and manage them directly there.
+
+- [Tautulli](https://tautulli.com/) A monitoring app for Plex
+
+- [Lidarr](https://lidarr.audio/) Sonarr, for music
 
 ## Hardware configuration
 
