@@ -31,11 +31,9 @@ services:
     volumes:
       - '${ROOT}/MediaCenter/config/deluge:/config'
       - '${HDDSTORAGE}:/MediaCenterBox'
-    #ports:
-    #  - '8112:8112' #uncomment if you are not using the VPN
-    network_mode: 'service:vpn' #comment/remove if you are not using the VPN
-    depends_on:                 #comment/remove if you are not using the VPN
-      - vpn                     #comment/remove if you are not using the VPN
+    network_mode: 'service:vpn'
+    depends_on:
+      - vpn
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
@@ -48,7 +46,7 @@ services:
       - '${ROOT}/MediaCenter/config/prowlarr:/config'
     restart: unless-stopped
     ports:
-      - '9696:9696' #uncomment if you are not using the VPN
+      - '9696:9696'
 
   sonarr:
     container_name: sonarr
@@ -60,9 +58,9 @@ services:
       - 'PGID=${PGID}'
       - 'TZ=${TZ}'
     volumes:
-      - '/etc/localtime:/etc/localtime:ro'
       - '${ROOT}/MediaCenter/config/sonarr:/config'
       - '${HDDSTORAGE}:/MediaCenterBox'
+
   radarr:
     container_name: radarr
     image: 'linuxserver/radarr:latest'
@@ -73,15 +71,13 @@ services:
       - 'PGID=${PGID}'
       - 'TZ=${TZ}'
     volumes:
-      - '/etc/localtime:/etc/localtime:ro'
       - '${ROOT}/MediaCenter/config/radarr:/config'
       - '${HDDSTORAGE}:/MediaCenterBox'
-      
+
   bazarr:
     container_name: bazarr
     image: 'linuxserver/bazarr:latest'
     restart: unless-stopped
-    #network_mode: host
     environment:
       - 'PUID=${PUID}'
       - 'PGID=${PGID}'
@@ -92,7 +88,7 @@ services:
       - '${HDDSTORAGE}:/MediaCenterBox'
     ports:
       - '6767:6767'
-      
+
   plex-server:
     container_name: plex-server
     image: 'plexinc/pms-docker:latest'
@@ -105,9 +101,6 @@ services:
       - '${ROOT}/MediaCenter/config/plex/transcode:/transcode'
       - '${HDDSTORAGE}/Completed:/MediaCenterBox'
 
-
-### Optional Containers
-
   wireguard:
     image: ghcr.io/linuxserver/wireguard:latest
     container_name: wireguard
@@ -115,24 +108,24 @@ services:
       - NET_ADMIN
       - SYS_MODULE
     environment:
-      - PUID=${PUID} # default user id, defined in .env
-      - PGID=${PUID} # default user id, defined in .env
-      - TZ=${TZ} # timezone, defined in .env
-      - SERVERURL=${SERVERURL} # server public ip, auto to auto find, defined in .env
-      - SERVERPORT=51820 #optional
-      - PEERS=${PEERS} # number of clients to be auto configured, defined in .env
-      - PEERDNS=auto #optional
-      - INTERNAL_SUBNET=172.168.69.0 #optional, network for devices ips. CAN NOT be the same as your home network
-      - ALLOWEDIPS=0.0.0.0/0 #optional
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - SERVERURL=${SERVERURL}
+      - SERVERPORT=51820
+      - PEERS=${PEERS}
+      - PEERDNS=auto
+      - INTERNAL_SUBNET=172.168.69.0
+      - ALLOWEDIPS=0.0.0.0/0
     volumes:
-      - ${ROOT}/MediaCenter/config/wireguard:/config # config folder
+      - ${ROOT}/MediaCenter/config/wireguard:/config
       - /lib/modules:/lib/modules
     ports:
       - 51820:51820/udp
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
     restart: always
-  
+
   overseerr:
     image: 'sctx/overseerr:latest'
     container_name: overseerr
@@ -144,3 +137,32 @@ services:
     volumes:
       - '${ROOT}/MediaCenter/config/overseerr/config:/app/config'
     restart: unless-stopped
+
+  tautulli:
+    container_name: tautulli
+    image: linuxserver/tautulli:latest
+    restart: unless-stopped
+    environment:
+      - 'PUID=${PUID}'
+      - 'PGID=${PGID}'
+      - 'TZ=${TZ}'
+    volumes:
+      - '${ROOT}/MediaCenter/config/tautulli:/config'
+      - '/portainer/Logs:/logs'
+    ports:
+      - '8181:8181'
+
+  lidarr:
+    container_name: lidarr
+    image: linuxserver/lidarr:latest
+    restart: unless-stopped
+    environment:
+      - 'PUID=${PUID}'
+      - 'PGID=${PGID}'
+      - 'TZ=${TZ}'
+    volumes:
+      - '${ROOT}/MediaCenter/config/lidarr:/config'
+      - '${HDDSTORAGE}:/MediaCenterBox'
+    ports:
+      - '8686:8686'
+    network_mode: host
