@@ -1,4 +1,4 @@
-version: '3.4'
+---
 services:
   vpn:
     container_name: vpn
@@ -6,18 +6,18 @@ services:
     environment:
       - 'OTHER_ARGS= --mute-replay-warnings'
     cap_add:
-      - net_admin
+      - NET_ADMIN
       - SYS_MODULE
     restart: unless-stopped
     volumes:
-      - '${ROOT}/MediaCenter/config/vpn:/vpn'
+      - '${ROOT}/config/vpn:/vpn'
       - /lib/modules:/lib/modules
     security_opt:
       - 'label:disable'
     devices:
       - '/dev/net/tun:/dev/net/tun'
     ports:
-      - '8112:8112' #deluge web UI Port
+      - '8112:8112' # Deluge Web UI Port
     command: '-f "" -r 192.168.68.0/24'
 
   deluge:
@@ -29,7 +29,7 @@ services:
       - 'PGID=${PGID}'
       - 'TZ=${TZ}'
     volumes:
-      - '${ROOT}/MediaCenter/config/deluge:/config'
+      - '${ROOT}/config/deluge:/config'
       - '${HDDSTORAGE}:/MediaCenterBox'
     network_mode: 'service:vpn'
     depends_on:
@@ -43,10 +43,15 @@ services:
       - PGID=1000
       - 'TZ=${TZ}'
     volumes:
-      - '${ROOT}/MediaCenter/config/prowlarr:/config'
+      - '${ROOT}/config/prowlarr:/config'
     restart: unless-stopped
     ports:
       - '9696:9696'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9696"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   sonarr:
     container_name: sonarr
@@ -58,8 +63,11 @@ services:
       - 'PGID=${PGID}'
       - 'TZ=${TZ}'
     volumes:
-      - '${ROOT}/MediaCenter/config/sonarr:/config'
+      - '${ROOT}/config/sonarr:/config'
       - '${HDDSTORAGE}:/MediaCenterBox'
+    depends_on:
+      - prowlarr
+      - jackett
 
   radarr:
     container_name: radarr
@@ -71,8 +79,11 @@ services:
       - 'PGID=${PGID}'
       - 'TZ=${TZ}'
     volumes:
-      - '${ROOT}/MediaCenter/config/radarr:/config'
+      - '${ROOT}/config/radarr:/config'
       - '${HDDSTORAGE}:/MediaCenterBox'
+    depends_on:
+      - prowlarr
+      - jackett
 
   bazarr:
     container_name: bazarr
@@ -84,10 +95,13 @@ services:
       - 'TZ=${TZ}'
       - UMASK_SET=022
     volumes:
-      - '${ROOT}/MediaCenter/config/bazarr:/config'
+      - '${ROOT}/config/bazarr:/config'
       - '${HDDSTORAGE}:/MediaCenterBox'
     ports:
       - '6767:6767'
+    depends_on:
+      - sonarr
+      - radarr
 
   plex-server:
     container_name: plex-server
@@ -97,8 +111,8 @@ services:
       - 'TZ=${TZ}'
     network_mode: host
     volumes:
-      - '${ROOT}/MediaCenter/config/plex/db:/config'
-      - '${ROOT}/MediaCenter/config/plex/transcode:/transcode'
+      - '${ROOT}/config/plex/db:/config'
+      - '${ROOT}/config/plex/transcode:/transcode'
       - '${HDDSTORAGE}/Completed:/MediaCenterBox'
 
   wireguard:
@@ -118,10 +132,10 @@ services:
       - INTERNAL_SUBNET=172.168.69.0
       - ALLOWEDIPS=0.0.0.0/0
     volumes:
-      - ${ROOT}/MediaCenter/config/wireguard:/config
+      - '${ROOT}/config/wireguard:/config'
       - /lib/modules:/lib/modules
     ports:
-      - 51820:51820/udp
+      - '51820:51820/udp'
     sysctls:
       - net.ipv4.conf.all.src_valid_mark=1
     restart: always
@@ -135,7 +149,7 @@ services:
     ports:
       - '5055:5055'
     volumes:
-      - '${ROOT}/MediaCenter/config/overseerr/config:/app/config'
+      - '${ROOT}/config/overseerr/config:/app/config'
     restart: unless-stopped
 
   tautulli:
@@ -147,7 +161,7 @@ services:
       - 'PGID=${PGID}'
       - 'TZ=${TZ}'
     volumes:
-      - '${ROOT}/MediaCenter/config/tautulli:/config'
+      - '${ROOT}/config/tautulli:/config'
       - '/portainer/Logs:/logs'
     ports:
       - '8181:8181'
@@ -161,8 +175,56 @@ services:
       - 'PGID=${PGID}'
       - 'TZ=${TZ}'
     volumes:
-      - '${ROOT}/MediaCenter/config/lidarr:/config'
+      - '${ROOT}/config/lidarr:/config'
       - '${HDDSTORAGE}:/MediaCenterBox'
     ports:
       - '8686:8686'
     network_mode: host
+    depends_on:
+      - prowlarr
+      - jackett
+
+  seedboxapi:
+    image: myanonamouse/seedboxapi
+    user: 1000:1000 # Run as a non-root user.
+    container_name: seedboxapi
+    network_mode: "service:vpn"
+    restart: unless-stopped
+    depends_on:
+      - vpn
+    volumes:
+      - '${ROOT}/config/seedboxapi:/config'
+    environment:
+      - DEBUG=1
+      - mam_id=${mam_id}
+      - interval=1
+
+  requestrr:
+    image: thomst08/requestrr
+    container_name: requestrr
+    ports:
+      - '4545:4545'
+    volumes:
+      - '${ROOT}/config/requestrr:/root/config'
+    restart: unless-stopped
+
+  jackett:
+    image: lscr.io/linuxserver/jackett:latest
+    container_name: jackett
+    environment:
+      - 'PUID=${PUID}'
+      - 'PGID=${PGID}'
+      - 'TZ=${TZ}'
+      - AUTO_UPDATE=true # optional
+      - RUN_OPTS= # optional
+    volumes:
+      - '${ROOT}/config/jackett:/config'
+      - '${HDDSTORAGE}/Downloads:/downloads'
+    ports:
+      - '9117:9117'
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9117"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
