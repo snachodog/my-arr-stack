@@ -1,3 +1,7 @@
 .env
 .vagrant
 *.log
+
+#config and volumes, just in case
+config/
+MediaCenterBox/
